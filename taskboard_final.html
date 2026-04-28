@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuseumApp — Challenge Taskboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f0f0f; --surface:#181818; --surface2:#222; --border:#2e2e2e; --border2:#3a3a3a;
+  --text:#f0ede8; --muted:#888580; --accent:#e8c97a; --accent2:#c4b06a;
+  --investigate:#7c6fcd; --investigate-bg:#1e1b2e; --investigate-bd:#3d3570;
+  --act:#4ea88a; --act-bg:#131e1b; --act-bd:#2a4f43;
+  --milestone:#d97c4a; --milestone-bg:#211610; --milestone-bd:#5c3520;
+  --store:#c0505a; --store-bg:#1e1013; --store-bd:#5c2535;
+  --polish:#888780; --polish-bg:#1a1a1a; --polish-bd:#3a3a3a;
+  --high:#e05555; --medium:#d4a24a; --low:#5b9cf6;
+  --Francesco:#ea8c4a; --Matteo:#d96b8a; --FabrizioL:#b8c96b;
+  --FabrizioE:#4db89a; --Agostino:#e8a44d; --Enzo:#e86f4d;
+  --Fabio:#5b9cf6; --Seyedeh:#a07ae8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;min-height:100vh;}
+
+header{padding:24px 28px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+header h1{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.3px;}
+.sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;}
+.legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.li{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;}
+.ld{width:7px;height:7px;border-radius:50%;}
+
+.team-bar{padding:8px 28px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:5px;align-items:center;background:var(--surface);}
+.tl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-right:4px;}
+.chip{display:flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .15s;color:var(--muted);}
+.chip:hover,.chip.on{border-color:var(--accent);color:var(--accent);background:#1c1900;}
+.av{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;}
+
+.board-wrap{overflow-x:auto;}
+.board{display:grid;grid-template-columns:144px repeat(10,1fr);border-left:1px solid var(--border);min-width:1080px;}
+
+.wh{background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 8px 6px;}
+.wh.lc{display:flex;align-items:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);padding-left:12px;}
+.wn{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;display:block;}
+.wd{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);display:block;margin-top:1px;}
+.today .wn{color:var(--accent);}
+.today{border-top:2px solid var(--accent) !important;}
+
+.ph{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px 5px;display:flex;align-items:center;}
+.ph.lc{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding-left:12px;background:var(--surface);}
+.pb{border-radius:3px;padding:3px 6px;font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;width:100%;text-align:center;}
+.pi{background:var(--investigate-bg);color:var(--investigate);border:1px solid var(--investigate-bd);}
+.pa{background:var(--act-bg);color:var(--act);border:1px solid var(--act-bd);}
+
+.rl{background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:8px 6px 8px 12px;min-height:88px;display:flex;flex-direction:column;justify-content:flex-start;}
+.rln{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;margin-bottom:2px;}
+.rlo{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);line-height:1.5;}
+
+.cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;min-height:88px;background:var(--bg);}
+.cell.today{background:#131200;}
+
+.tc{border-radius:5px;padding:6px 7px;margin-bottom:3px;cursor:pointer;border:1px solid transparent;transition:transform .1s,box-shadow .15s;position:relative;overflow:hidden;}
+.tc:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.5);z-index:2;}
+.tc.investigate{background:var(--investigate-bg);border-color:var(--investigate-bd);}
+.tc.act{background:var(--act-bg);border-color:var(--act-bd);}
+.tc.milestone{background:var(--milestone-bg);border-color:var(--milestone-bd);}
+.tc.store{background:var(--store-bg);border-color:var(--store-bd);}
+.tc.polish{background:var(--polish-bg);border-color:var(--polish-bd);}
+.tc.dimmed{opacity:.12;pointer-events:none;}
+.tc.high::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--high);}
+.tc.medium::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--medium);}
+.tc.low::after{content:'';position:absolute;top:0;right:0;width:3px;height:100%;background:var(--low);}
+.tt{font-size:10px;font-weight:500;margin-bottom:3px;line-height:1.3;padding-right:6px;}
+.tc.investigate .tt{color:#b0a8e8;}
+.tc.act .tt{color:#7fcfb5;}
+.tc.milestone .tt{color:#e8a87a;}
+.tc.store .tt{color:#e8808a;}
+.tc.polish .tt{color:#aaa;}
+.tow{display:flex;flex-wrap:wrap;gap:2px;margin-top:3px;}
+.ot{font-size:8px;font-family:'DM Mono',monospace;padding:1px 4px;border-radius:8px;border:1px solid transparent;}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:100;align-items:center;justify-content:center;padding:20px;}
+.mo.open{display:flex;}
+.md{background:var(--surface);border:1px solid var(--border2);border-radius:12px;max-width:650px;width:100%;max-height:88vh;overflow-y:auto;padding:28px;position:relative;}
+.mph{font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.mph.investigate{color:var(--investigate);}
+.mph.act{color:var(--act);}
+.mph.milestone{color:var(--milestone);}
+.mph.store{color:var(--store);}
+.mph.polish{color:var(--polish);}
+.mtt{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;line-height:1.2;padding-right:36px;}
+.mmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.mwk{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.pbadge{font-size:9px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:8px;}
+.pbadge.high{background:#2a1010;color:var(--high);border:1px solid #5c2020;}
+.pbadge.medium{background:#1e1700;color:var(--medium);border:1px solid #5c4400;}
+.pbadge.low{background:#101828;color:var(--low);border:1px solid #204060;}
+.mow{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:16px;}
+.mot{font-size:10px;font-family:'DM Mono',monospace;padding:2px 8px;border-radius:12px;border:1px solid transparent;}
+.msec{margin-bottom:16px;}
+.msh{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.mdesc{font-size:12.5px;color:#c0bdb8;line-height:1.65;}
+.mblk{border:1px solid var(--border);border-radius:7px;margin-bottom:6px;overflow:hidden;}
+.mbh{display:flex;align-items:center;gap:7px;padding:8px 11px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.mbn{font-size:12px;font-weight:500;}
+.mbr{font-size:9px;font-family:'DM Mono',monospace;color:var(--muted);margin-left:auto;}
+.mbt{padding:9px 11px;display:flex;flex-direction:column;gap:5px;}
+.mbi{display:flex;gap:7px;font-size:11.5px;color:#bbb8b3;line-height:1.5;}
+.mbi span:first-child{font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);min-width:18px;padding-top:2px;flex-shrink:0;}
+.del{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:#c0bdb8;padding:5px 0;border-bottom:1px solid var(--border);}
+.del:last-child{border-bottom:none;}
+.da{color:var(--act);font-size:11px;flex-shrink:0;padding-top:1px;}
+.cbtn{position:absolute;top:14px;right:14px;background:var(--surface2);border:1px solid var(--border2);color:var(--muted);width:26px;height:26px;border-radius:50%;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cbtn:hover{color:var(--text);}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>MuseumApp — Challenge Taskboard</h1>
+    <div class="sub">Apr 20 → Jun 15 · 8 members · click any card for full brief + per-person sub-tasks</div>
+  </div>
+  <div class="legend">
+    <span class="tl">Phase —</span>
+    <span class="li"><span class="ld" style="background:var(--investigate)"></span>Investigate</span>
+    <span class="li"><span class="ld" style="background:var(--act)"></span>Act</span>
+    <span class="li"><span class="ld" style="background:var(--milestone)"></span>Milestone</span>
+    <span class="li"><span class="ld" style="background:var(--store)"></span>App Store</span>
+    <span class="li"><span class="ld" style="background:var(--polish)"></span>Polish</span>
+    <span style="margin-left:10px;" class="tl">Priority —</span>
+    <span class="li"><span class="ld" style="background:var(--high)"></span>High</span>
+    <span class="li"><span class="ld" style="background:var(--medium)"></span>Medium</span>
+    <span class="li"><span class="ld" style="background:var(--low)"></span>Low</span>
+  </div>
+</header>
+
+<div class="team-bar" id="tbar">
+  <span class="tl">Filter —</span>
+  <span class="chip on" data-m="all" onclick="filt('all',this)">All</span>
+  <span class="chip" data-m="Francesco" onclick="filt('Francesco',this)"><span class="av" style="background:var(--Francesco)">Fr</span>Francesco A.</span>
+  <span class="chip" data-m="Matteo" onclick="filt('Matteo',this)"><span class="av" style="background:var(--Matteo)">M</span>Matteo P.</span>
+  <span class="chip" data-m="FabrizioL" onclick="filt('FabrizioL',this)"><span class="av" style="background:var(--FabrizioL)">FL</span>Fabrizio L.</span>
+  <span class="chip" data-m="FabrizioE" onclick="filt('FabrizioE',this)"><span class="av" style="background:var(--FabrizioE)">FE</span>Fabrizio E.</span>
+  <span class="chip" data-m="Agostino" onclick="filt('Agostino',this)"><span class="av" style="background:var(--Agostino)">A</span>Agostino B.</span>
+  <span class="chip" data-m="Enzo" onclick="filt('Enzo',this)"><span class="av" style="background:var(--Enzo)">E</span>Enzo T.</span>
+  <span class="chip" data-m="Fabio" onclick="filt('Fabio',this)"><span class="av" style="background:var(--Fabio)">Fb</span>Fabio A.</span>
+  <span class="chip" data-m="Seyedeh" onclick="filt('Seyedeh',this)"><span class="av" style="background:var(--Seyedeh)">S</span>Seyedeh S.</span>
+</div>
+
+<div class="board-wrap">
+<div class="board" id="board">
+
+<!-- WEEK HEADERS -->
+<div class="wh lc">Week / Lane</div>
+<div class="wh today"><span class="wn">W1</span><span class="wd">Apr 20–26</span></div>
+<div class="wh"><span class="wn">W2</span><span class="wd">Apr 27–May 3</span></div>
+<div class="wh"><span class="wn">W3</span><span class="wd">May 4–10</span></div>
+<div class="wh"><span class="wn">W4</span><span class="wd">May 11–17</span></div>
+<div class="wh"><span class="wn">W5</span><span class="wd">May 18–24</span></div>
+<div class="wh"><span class="wn">W6</span><span class="wd">May 25–31</span></div>
+<div class="wh"><span class="wn">W7</span><span class="wd">Jun 1–7</span></div>
+<div class="wh"><span class="wn">W8</span><span class="wd">Jun 8–11</span></div>
+<div class="wh"><span class="wn">W9</span><span class="wd">Jun 12</span></div>
+<div class="wh"><span class="wn">W10</span><span class="wd">Jun 15</span></div>
+
+<!-- PHASE ROW -->
+<div class="ph lc">Challenge Phase</div>
+<div class="ph today"><div class="pb pi">Investigate</div></div>
+<div class="ph"><div class="pb pi">Investigate</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+<div class="ph"><div class="pb pa">Act</div></div>
+
+<!-- ROW: PROJECT MANAGEMENT -->
+<div class="rl"><span class="rln">Project Mgmt</span><span class="rlo">Francesco A.<br>Matteo P.</span></div>
+<div class="cell today" id="r-pm-w1"></div>
+<div class="cell" id="r-pm-w2"></div>
+<div class="cell" id="r-pm-w3"></div>
+<div class="cell" id="r-pm-w4"></div>
+<div class="cell" id="r-pm-w5"></div>
+<div class="cell" id="r-pm-w6"></div>
+<div class="cell" id="r-pm-w7"></div>
+<div class="cell" id="r-pm-w8"></div>
+<div class="cell" id="r-pm-w9"></div>
+<div class="cell" id="r-pm-w10"></div>
+
+<!-- ROW: RESEARCH -->
+<div class="rl"><span class="rln">Research</span><span class="rlo">Francesco A.<br>Matteo P.<br>Enzo T.</span></div>
+<div class="cell today" id="r-res-w1"></div>
+<div class="cell" id="r-res-w2"></div>
+<div class="cell" id="r-res-w3"></div>
+<div class="cell" id="r-res-w4"></div>
+<div class="cell" id="r-res-w5"></div>
+<div class="cell" id="r-res-w6"></div>
+<div class="cell" id="r-res-w7"></div>
+<div class="cell" id="r-res-w8"></div>
+<div class="cell" id="r-res-w9"></div>
+<div class="cell" id="r-res-w10"></div>
+
+<!-- ROW: DESIGN -->
+<div class="rl"><span class="rln">Design</span><span class="rlo">Fabrizio E.<br>Agostino B.<br>Enzo T.</span></div>
+<div class="cell today" id="r-des-w1"></div>
+<div class="cell" id="r-des-w2"></div>
+<div class="cell" id="r-des-w3"></div>
+<div class="cell" id="r-des-w4"></div>
+<div class="cell" id="r-des-w5"></div>
+<div class="cell" id="r-des-w6"></div>
+<div class="cell" id="r-des-w7"></div>
+<div class="cell" id="r-des-w8"></div>
+<div class="cell" id="r-des-w9"></div>
+<div class="cell" id="r-des-w10"></div>
+
+<!-- ROW: DEVELOPMENT -->
+<div class="rl"><span class="rln">Development</span><span class="rlo">Fabio A.<br>Seyedeh S.</span></div>
+<div class="cell today" id="r-dev-w1"></div>
+<div class="cell" id="r-dev-w2"></div>
+<div class="cell" id="r-dev-w3"></div>
+<div class="cell" id="r-dev-w4"></div>
+<div class="cell" id="r-dev-w5"></div>
+<div class="cell" id="r-dev-w6"></div>
+<div class="cell" id="r-dev-w7"></div>
+<div class="cell" id="r-dev-w8"></div>
+<div class="cell" id="r-dev-w9"></div>
+<div class="cell" id="r-dev-w10"></div>
+
+<!-- ROW: USER TESTING -->
+<div class="rl"><span class="rln">User Testing</span><span class="rlo">Francesco A.<br>Matteo P.<br>Fabrizio E.</span></div>
+<div class="cell today" id="r-ut-w1"></div>
+<div class="cell" id="r-ut-w2"></div>
+<div class="cell" id="r-ut-w3"></div>
+<div class="cell" id="r-ut-w4"></div>
+<div class="cell" id="r-ut-w5"></div>
+<div class="cell" id="r-ut-w6"></div>
+<div class="cell" id="r-ut-w7"></div>
+<div class="cell" id="r-ut-w8"></div>
+<div class="cell" id="r-ut-w9"></div>
+<div class="cell" id="r-ut-w10"></div>
+
+<!-- ROW: APP STORE -->
+<div class="rl"><span class="rln">App Store</span><span class="rlo">Seyedeh S.<br>Matteo P.<br>Fabrizio L.</span></div>
+<div class="cell today" id="r-as-w1"></div>
+<div class="cell" id="r-as-w2"></div>
+<div class="cell" id="r-as-w3"></div>
+<div class="cell" id="r-as-w4"></div>
+<div class="cell" id="r-as-w5"></div>
+<div class="cell" id="r-as-w6"></div>
+<div class="cell" id="r-as-w7"></div>
+<div class="cell" id="r-as-w8"></div>
+<div class="cell" id="r-as-w9"></div>
+<div class="cell" id="r-as-w10"></div>
+
+<!-- ROW: BUSINESS & PITCH -->
+<div class="rl"><span class="rln">Business &amp; Pitch</span><span class="rlo">Fabrizio L.<br>Francesco A.<br>Matteo P.</span></div>
+<div class="cell today" id="r-biz-w1"></div>
+<div class="cell" id="r-biz-w2"></div>
+<div class="cell" id="r-biz-w3"></div>
+<div class="cell" id="r-biz-w4"></div>
+<div class="cell" id="r-biz-w5"></div>
+<div class="cell" id="r-biz-w6"></div>
+<div class="cell" id="r-biz-w7"></div>
+<div class="cell" id="r-biz-w8"></div>
+<div class="cell" id="r-biz-w9"></div>
+<div class="cell" id="r-biz-w10"></div>
+
+<!-- ROW: MILESTONES -->
+<div class="rl"><span class="rln">Milestones</span><span class="rlo">Full team</span></div>
+<div class="cell today" id="r-mil-w1"></div>
+<div class="cell" id="r-mil-w2"></div>
+<div class="cell" id="r-mil-w3"></div>
+<div class="cell" id="r-mil-w4"></div>
+<div class="cell" id="r-mil-w5"></div>
+<div class="cell" id="r-mil-w6"></div>
+<div class="cell" id="r-mil-w7"></div>
+<div class="cell" id="r-mil-w8"></div>
+<div class="cell" id="r-mil-w9"></div>
+<div class="cell" id="r-mil-w10"></div>
+
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="mo" id="mo" onclick="closeMo(event)">
+  <div class="md">
+    <button class="cbtn" onclick="closeMoBtn()">✕</button>
+    <div class="mph" id="mph"></div>
+    <div class="mtt" id="mtt"></div>
+    <div class="mmeta" id="mmeta"></div>
+    <div class="mow" id="mow"></div>
+    <div class="msec"><div class="msh">Overview</div><div class="mdesc" id="mdesc"></div></div>
+    <div class="msec"><div class="msh">Who does what</div><div id="mmbr"></div></div>
+    <div class="msec"><div class="msh">Deliverables</div><div id="mdel"></div></div>
+  </div>
+</div>
+
+<script>
+const TC={Francesco:'var(--Francesco)',Matteo:'var(--Matteo)',FabrizioL:'var(--FabrizioL)',FabrizioE:'var(--FabrizioE)',Agostino:'var(--Agostino)',Enzo:'var(--Enzo)',Fabio:'var(--Fabio)',Seyedeh:'var(--Seyedeh)'};
+const TL={Francesco:'Francesco Abete',Matteo:'Matteo Pignataro',FabrizioL:'Fabrizio Langella',FabrizioE:'Fabrizio Ecuba',Agostino:'Agostino Barone',Enzo:'Enzo Treglia',Fabio:'Fabio Antonucci',Seyedeh:'Seyedeh Shekarabi'};
+const TR={Francesco:'PM',Matteo:'PM',FabrizioL:'Business',FabrizioE:'Design',Agostino:'Design',Enzo:'Design',Fabio:'Dev',Seyedeh:'Dev'};
+const TI={Francesco:'Fr',Matteo:'M',FabrizioL:'FL',FabrizioE:'FE',Agostino:'A',Enzo:'E',Fabio:'Fb',Seyedeh:'S'};
+
+// TASK DATA
+// cell: row-week  e.g. 'r-pm-w1'
+// phase: investigate | act | milestone | store | polish
+// priority: high | medium | low
+const TASKS = [
+
+  // ── PROJECT MANAGEMENT ──
+  {
+    id:'roadmap-ws', cell:'r-pm-w1', phase:'milestone', priority:'high',
+    title:'Roadmap Workshop',
+    week:'W1 — Apr 20–21',
+    members:['Francesco','Matteo'],
+    desc:'First meeting as a full team. Align everyone on the challenge, agree on working norms, assign roles, and co-produce the project roadmap. Nothing starts until this is done.',
+    mt:{
+      Francesco:['Facilitate the session: introduce the challenge brief, time-box each agenda item','Run the Wuozzappen sticky-note exercise: everyone posts tasks, then group and sequence them by week','Assign ownership to each task on the spot — no orphan cards','Write up and share the signed-off roadmap document by end of day'],
+      Matteo:['Set up the digital taskboard (Notion or equivalent) before the session','Record all decisions during the workshop — decisions without a written record get revisited','Send the final roadmap to the full team and confirm receipt from everyone','Set up the daily standup cadence: time, channel, format'],
+    },
+    del:['Signed-off project roadmap','Team working agreement','Communication channels live'],
+  },
+  {
+    id:'tracking', cell:'r-pm-w1', phase:'investigate', priority:'medium',
+    title:'Tracking the Progress',
+    week:'W1–W6 — Apr 23–May 29',
+    members:['Francesco','Matteo'],
+    desc:'Ongoing project management across the full Investigate and Act phases. Keep the team aligned, surface blockers before they become crises, and ensure every milestone is hit on time.',
+    mt:{
+      Francesco:['Run the daily standup (max 10 min): yesterday / today / blockers — no exceptions','Own the risk log: one line per risk, likelihood, and mitigation. Review weekly with Matteo','Manage external communications: museum contacts, mentor scheduling, Apple coordination','Escalate any deadline risk immediately — never hold bad news'],
+      Matteo:['Maintain the taskboard: update card statuses daily, reassign blocked tasks promptly','Send a written weekly update every Friday: progress, next priorities, open questions','Coordinate mid-build user testing logistics (recruit families, book space, prepare materials)','Track the critical path — flag if any task threatens the May 15 mid-term or Jun 4 final deliverable'],
+    },
+    del:['Weekly written update ×6','Risk log current at all times','Taskboard statuses accurate daily'],
+  },
+
+  // ── RESEARCH ──
+  {
+    id:'competitor-research', cell:'r-res-w1', phase:'investigate', priority:'high',
+    title:'Competitor & Technical Research',
+    week:'W1–W3 — Apr 27–Jun 3',
+    members:['Enzo','FabrizioL','Fabio'],
+    desc:'Map the existing landscape of comparable apps and assess technical feasibility of core features in parallel with field research. Informs both the business pitch and the development architecture.',
+    mt:{
+      Enzo:['Download and critically use the top 5 competitors: search "kids museum app", "art education 5 year old", "drawing app kids"','Document for each: what it does, price, rating, top 3 review complaints, what it is missing','Build a visual competitor matrix (Figma table) — this becomes a slide in the pitch deck','Identify the gap: what none of them offer that MuseumApp will'],
+      FabrizioL:['Research the Italian museum landscape: which institutions have existing digital education programs?','Collect visitor statistics for Capodimonte and major Italian museums — use as TAM anchor','Document 2–3 international examples of museum-app partnerships (MoMA, Louvre, Tate kids)'],
+      Fabio:['Spike the two core technical questions: (1) can AVFoundation + Vision extract a reliable 5-colour palette from a photo? (2) can Core Image edge detection produce a usable outline?','Write a 1-page tech feasibility note: chosen approach per feature, risks, fallback options','Share findings with full team before end of W2 — devs and designers must align before the lofi prototype'],
+    },
+    del:['Competitor matrix (Figma)','Tech feasibility note (1 page)','Market context data for pitch'],
+  },
+  {
+    id:'outdoor-interviews', cell:'r-res-w2', phase:'investigate', priority:'high',
+    title:'Outdoor Interviews — Capodimonte',
+    week:'W2 — Apr 27–May 3',
+    members:['Francesco','Matteo','Enzo'],
+    desc:'Primary field research at Museo Capodimonte. Observe and interview real parents and children in the museum environment. This is the most important task of the Investigate phase — all design decisions flow from it.',
+    mt:{
+      Francesco:['Lead facilitator on-site: approach family groups, introduce the project, run each session','Conduct child interview: "Which painting do you like most? What would you draw here?" — use simple, open questions only','Observe child behaviour in front of artworks: duration of attention, gestures, verbal reactions — write notes immediately after each session, never from memory','Aim for at least 8 family groups across two separate museum visits (different days = different visitor profiles)'],
+      Matteo:['Coordinate logistics before the visit: contact museum education dept, agree on dates, prepare consent form if photographing artworks','Co-facilitator and note-taker during sessions — capture parent responses verbatim','Conduct parent interview: "Would you download an art app for your child? What skill would you want them to gain?"','Compile all notes into a shared document by end of each day'],
+      Enzo:['Secondary observer: photograph artworks (never people) for visual reference','Build a simple tally sheet across sessions: track repeated behaviours (child touches painting, child asks to draw, child loses interest within 1 min, etc.)','Draft the "top 10 insights" summary at week end for the synthesis session'],
+    },
+    del:['Field notes from 8+ family sessions','Artwork photo reference folder','Top 10 insights summary'],
+  },
+  {
+    id:'research-synthesis', cell:'r-res-w3', phase:'investigate', priority:'high',
+    title:'Research Synthesis',
+    week:'W3 — May 4–7',
+    members:['Francesco','Matteo','Enzo'],
+    desc:'Turn raw field notes into locked decisions. This session defines the pedagogical goal and the single MVP feature to build. Everything coded and designed after this point depends on these choices — run it rigorously.',
+    mt:{
+      Francesco:['Facilitate the synthesis session: present all field notes on a shared board (Miro or physical wall)','Run affinity mapping: group observations by theme (attention span, drawing behaviour, parent anxieties, emotional responses to art)','Lead the "How Might We" exercise: convert each pain point into a design opportunity statement','Moderate the feature vote — palette extractor vs outline colorist vs free canvas. One decision, locked.'],
+      Matteo:['Prepare the synthesis board before the session: print or paste all field notes, create theme columns','Document the outcome: write the Research Synthesis doc (context, insights, pedagogical goal chosen, feature decision + rationale)','Share with full team same day. Run a 15-min all-hands to align everyone — no work starts on ambiguous decisions'],
+      Enzo:['Bring the competitor matrix to the session — cross-reference what competitors do with what the research reveals','Contribute visual framing: sketch the emotional loop (create → save → revisit) as a diagram for the synthesis doc'],
+    },
+    del:['Research Synthesis document','Affinity map (photo or digital)','Locked feature decision + pedagogical goal'],
+  },
+  {
+    id:'mid-research', cell:'r-res-w4', phase:'act', priority:'medium',
+    title:'Mid-build User Check',
+    week:'W4 — May 11–14',
+    members:['Francesco','Matteo','FabrizioE'],
+    desc:'A quick gut-check with 3–4 families using the HiFi prototype before the Mid Term Review. Validates early design decisions without the cost of a full research round.',
+    mt:{
+      Francesco:['Recruit 3–4 families through personal networks or museum education dept','Facilitate sessions: place the prototype in front of each child, say nothing, observe what they do','Note every moment of confusion — where does the child hesitate or tap something unintended?'],
+      Matteo:['Ask parents: "Does this feel educational? Would you download it?" Aim for a 1–5 rating on both questions','Compile a short feedback doc (one page max) with top 3 changes before HiFi finalisation','Prepare a one-slide testing summary for the Mid Term presentation'],
+      FabrizioE:['Bring the Figma prototype on a physical iPhone (mirrored via Figma app) — always test on device, never on laptop screen','Take screen-recordings of sessions (with consent) — 1–2 clips become evidence in the pitch deck'],
+    },
+    del:['Mid-build feedback document (1 page)','Testing summary slide','1–2 video clips (with consent)'],
+  },
+
+  // ── DESIGN ──
+  {
+    id:'design-brief', cell:'r-des-w1', phase:'investigate', priority:'medium',
+    title:'Design Brief & Visual Direction',
+    week:'W1 — Apr 26–30',
+    members:['FabrizioE','Agostino','Enzo'],
+    desc:'Before any screen is designed, the team must agree on the visual language. This document — colour palette, typography, icon style, tone — is the single source of truth for every design decision that follows.',
+    mt:{
+      FabrizioE:['Own the Design Brief document: principles (max 3), colour palette (max 6 hex values), font choices, icon style, tone of voice','Choose typography: one display font for headings (large, friendly, legible at small sizes), one body font. Test at 14px — that is the minimum a 5-year-old taps on','Share draft with PMs for sign-off before any wireframe is started'],
+      Agostino:['Lead the moodboard: collect 15–20 references from kids apps, museum interfaces, and art education tools — pin to Figma','Test each reference against the 3 design principles — keep only those that score 2/3 or higher','Present moodboard to team and get alignment before committing to direction'],
+      Enzo:['Define the icon style: rounded, flat, or hand-drawn feel? Consistency matters more than complexity','Draft the app information architecture: list every screen and how they connect before wireframing begins','Contribute to colour palette decisions — ensure the palette is warm and inviting but not overstimulating for a 5-year-old'],
+    },
+    del:['Design Brief document (signed off by PMs)','Moodboard (Figma)','App IA diagram'],
+  },
+  {
+    id:'lofi-prototype', cell:'r-des-w2', phase:'investigate', priority:'medium',
+    title:'Lo-fi Prototype',
+    week:'W2–W3 — May 4–8',
+    members:['FabrizioE','Agostino','Enzo','Fabio'],
+    desc:'A clickable low-fidelity prototype to test interaction logic before any production code is written. Fast and rough — the goal is to find flow problems, not to look polished.',
+    mt:{
+      FabrizioE:['Build the Figma LoFi clickable prototype: grey boxes, placeholder text, all screens linked with hotspots','Produce two flow variants for the chosen feature — both get tested so the best one is confirmed','Prepare a 5-task test script and 4 parent questions for the LoFi user testing sessions'],
+      Agostino:['Produce the paper prototype: print each screen at iPhone size (A6 paper), cut out, tape to a phone-shaped card','Run the paper test with 2–3 children personally — place it in front of them, say nothing, observe what they tap','Note every hesitation or confusion point and bring findings to the design team debrief'],
+      Enzo:['Conduct an internal team walkthrough of the Figma prototype before user testing — flag any dead ends or missing states','Design all empty states: no saved artworks yet, camera permission denied, processing loading state'],
+      Fabio:['Build a rapid native SwiftUI spike for the drawing canvas — test core touch interaction on a real device: draw, select colour, undo, save','Report back to the design team: what felt natural, what was technically awkward — this informs HiFi decisions'],
+    },
+    del:['Figma LoFi clickable prototype (2 variants)','Paper prototype (printed)','SwiftUI drawing canvas spike','Test script for LoFi sessions'],
+  },
+  {
+    id:'design-app', cell:'r-des-w3', phase:'act', priority:'medium',
+    title:'HiFi Design — App & Visualization',
+    week:'W3–W4 — Apr 26–May 15',
+    members:['Agostino','FabrizioE','Enzo'],
+    desc:'Pixel-perfect Figma screens incorporating all LoFi test feedback. This is the visual specification that developers build from. It must be complete, annotated, and exported before the dev sprint starts.',
+    mt:{
+      Agostino:['Lead design of the creation canvas: brush tool UI, colour swatch display (large tappable targets), undo and save buttons','Design the personal museum gallery: grid of saved artworks, full-screen viewer, side-by-side comparison with source painting','Ensure all touch targets are minimum 44×44pt — test by tapping with a real fingertip on a printed mockup'],
+      FabrizioE:['Lead design of the camera/scan flow: capture screen, processing animation, result reveal moment','Design the onboarding screens (max 3): visual-only, almost no text, communicates the concept to a 5-year-old in under 30 seconds','Export all assets for dev handoff: SVG icons, PNG illustrations @2x @3x, colour token reference sheet — use Figma\'s inspect panel'],
+      Enzo:['Design all states for every interactive element: default, tapped, loading, success, error — incomplete states = dev slowdowns','Design the colour palette display screen: 5 large swatches derived from the museum painting, clear and tactile','Add interaction annotations in Figma for every transition: tap targets, animation notes, timing'],
+    },
+    del:['Figma HiFi prototype — all screens','Dev handoff asset export folder','Prototype link for Mid Term Review (May 15)'],
+  },
+  {
+    id:'design-handoff', cell:'r-des-w4', phase:'act', priority:'high',
+    title:'Design–Dev Handoff',
+    week:'W4 — May 11–12',
+    members:['FabrizioE','Agostino','Enzo','Fabio','Seyedeh'],
+    desc:'A structured session where designers walk developers through the Figma file. Prevents misinterpretations. Both sides leave with zero open questions.',
+    mt:{
+      FabrizioE:['Present each screen in Figma: intended interaction, micro-animations, edge cases','Agree on component naming conventions so Figma names match Swift view names — write the mapping in a shared doc'],
+      Agostino:['Walk devs through the canvas and gallery screens specifically — these are the most complex to implement','Confirm all icon and illustration assets are exported and named correctly'],
+      Enzo:['Walk devs through all states and error screens','Confirm animation specs are written in the Figma annotations — duration, easing, trigger'],
+      Fabio:['Flag any technically difficult elements immediately — agree on simplifications without compromising core UX','Confirm receipt and access to all exported assets'],
+      Seyedeh:['Create the implementation checklist: every UI component to build, with its Figma frame reference','Schedule weekly design-dev sync (30 min) for the duration of the build phase'],
+    },
+    del:['Implementation checklist','Asset folder confirmed in shared drive','Weekly design-dev sync scheduled'],
+  },
+  {
+    id:'app-icon', cell:'r-des-w5', phase:'act', priority:'medium',
+    title:'App Icon Final',
+    week:'W5 — May 1–21',
+    members:['Agostino','FabrizioE','Enzo'],
+    desc:'The App Icon is the first thing a parent sees on the App Store. It must communicate "art + kids + museum" at 60×60pt. Apple rejects icons with text, borders, or photorealistic images. Start sketching early.',
+    mt:{
+      Agostino:['Lead icon design: sketch 5–8 concepts on paper first, then refine top 3 in Figma','Test at all display sizes: 60pt (home screen), 29pt (settings), 20pt (notification). If unreadable at 20pt, redesign','Test on light and dark wallpapers — must pop on both','Export all required Apple sizes and organise in an Xcode-ready asset catalogue folder'],
+      FabrizioE:['Review icon concepts: push for distinctiveness over safety — the icon must be unforgettable at thumbnail size','Ensure icon is visually consistent with the app\'s design system (same palette, same style)'],
+      Enzo:['Design the App Store screenshots: device frame mockups + caption overlays for each key screen','Required minimum: iPhone 6.7" and 5.5" sizes. Each screenshot tells one story step: Scan → Colours → Draw → Save'],
+    },
+    del:['App Icon set (all Apple sizes, Xcode-ready)','App Store screenshots (6.7" and 5.5")'],
+  },
+  {
+    id:'app-poster', cell:'r-des-w7', phase:'act', priority:'medium',
+    title:'App Poster — Jun 3',
+    week:'W7 — Jun 1–4',
+    members:['FabrizioE','Agostino','Enzo'],
+    desc:'The official Apple Academy poster. A designed artifact displayed publicly — not a slide. Must communicate the product and its emotional value in 5 seconds from 2 metres away.',
+    mt:{
+      FabrizioE:['Design the poster layout: one central emotional image (child drawing inspired by a painting), app name, one-line tagline, QR code to App Store','Typography must be legible from 2 metres — test by stepping back from the screen or scaling to thumbnail'],
+      Agostino:['Create the central illustration: child + painting side by side, in the app\'s visual style','Print a colour test copy before final — screen colours ≠ print colours. Adjust for print gamut'],
+      Enzo:['Prepare the digital version for slides and social','Confirm final format and dimensions with PMs (typically A1 portrait for Apple Academy)'],
+    },
+    del:['App Poster PDF (print-ready)','Digital version (PNG for slides)'],
+  },
+  {
+    id:'keynote', cell:'r-des-w7', phase:'act', priority:'high',
+    title:'Keynote Slide Deck',
+    week:'W7–W8 — Apr 30–Jun 11',
+    members:['FabrizioE','Agostino','Matteo','Francesco'],
+    desc:'The presentation deck for Mid Term (May 15) and Challenge Presentation (Jun 12). PMs own the narrative structure; designers own the visual execution. Mid Term version is a subset of the final.',
+    mt:{
+      FabrizioE:['Design the Keynote master template: title, content, split-image, and demo-screenshot slide layouts — no default Keynote templates','Apply full brand system to every slide. Design transitions to match the app\'s visual tone (smooth, not flashy)','Export PDF backup. Test on a projector if possible — projectors shift saturation'],
+      Agostino:['Design the story opening slide: the "little girl and the bar painting" moment — this is the emotional anchor of the entire presentation','Design the app demo section: annotated screenshots showing the full flow, museum painting next to child\'s version'],
+      Matteo:['Write the pitch script by May 2 — structure: hook (30s) → problem (1m) → insight (1m) → solution + demo (3m) → market (1m) → team (30s)','Assign speaking sections to team members. Each person rehearses their section alone before group rehearsals','Run 3 structured rehearsals: May 13 (team only), Jun 8 (with mentors), Jun 10 (final peer run-through)'],
+      Francesco:['Write speaker notes for every slide — detailed enough that any team member could present it as backup','Prepare Q&A cheat sheet: 10 hardest Apple questions + prepared answers','Manage rehearsal scheduling — attendance is mandatory for all 3 sessions'],
+    },
+    del:['Keynote — Mid Term version (May 13)','Keynote — Final version (Jun 7)','PDF backup','Q&A cheat sheet','Speaker notes for all slides'],
+  },
+
+  // ── DEVELOPMENT ──
+  {
+    id:'tech-setup', cell:'r-dev-w1', phase:'investigate', priority:'high',
+    title:'Tech Stack Setup & Architecture',
+    week:'W1–W2 — Apr 20–May 3',
+    members:['Fabio','Seyedeh'],
+    desc:'Before any feature is built, the development environment and architecture must be clean and agreed. A messy setup costs more time than it saves. Run in parallel with research, not after.',
+    mt:{
+      Fabio:['Create the Xcode project. Deployment target: iOS 16 minimum (covers ~95% active devices)','Set up Git repo on GitHub. Branching strategy: main (stable), develop (integration), feature/* (individual work). Agree commit message format','Decide on the drawing framework: native UIKit Canvas vs PencilKit vs custom CALayer. Document the decision with rationale','Evaluate colour extraction: AVFoundation + Vision (native). Prototype a basic k-means palette extractor and share result with design team'],
+      Seyedeh:['Decide on storage strategy: local SwiftData vs CoreData vs JSON files in Documents directory. For local-only, JSON per creation is simplest and most debuggable','Create the app skeleton: navigation structure, placeholder views for each main screen, dummy data models','Set up SwiftLint for code consistency. Add a shared .xcconfig for build settings','Write a 1-page architecture doc: chosen patterns, file structure, naming conventions — shared with Fabio before sprint 1 begins'],
+    },
+    del:['Xcode project on GitHub','Architecture decision document','Working app skeleton running on device'],
+  },
+  {
+    id:'sprint1', cell:'r-dev-w3', phase:'act', priority:'high',
+    title:'Sprint 1 — Core Creation Canvas',
+    week:'W3 — May 4–10',
+    members:['Fabio','Seyedeh'],
+    desc:'Build the heart of the app: the drawing canvas where children create. Every other screen exists to serve this moment. Smooth, responsive, and finger-friendly.',
+    mt:{
+      Fabio:['Implement the drawing canvas: finger touch only (no Apple Pencil dependency). Smooth stroke rendering using Bezier curves — not straight lines between touch points','Implement brush size control: 3 preset sizes (small, medium, large). No more options than this for the target age group','Implement undo: shake-to-undo or a visible undo button — test both with a real child if possible','Save drawing function: capture canvas as UIImage, write to Documents directory with timestamp filename'],
+      Seyedeh:['Implement the colour selector based on the chosen feature: if palette extractor — 5 large tappable swatches; if outline — flood-fill on tap','Implement the clear canvas action with a confirmation step (kids accidentally clear work — this is a known UX failure mode)','Test on a physical device: are touch targets large enough? Is there visible lag? Fix before sprint 2 begins'],
+    },
+    del:['Working drawing canvas on physical device','Colour constraint system functional','Save-to-disk working'],
+  },
+  {
+    id:'sprint2', cell:'r-dev-w4', phase:'act', priority:'high',
+    title:'Sprint 2 — Camera & Palette / Outline',
+    week:'W4 — May 11–17',
+    members:['Fabio','Seyedeh'],
+    desc:'Build the bridge between the museum painting and the child\'s canvas. The camera flow analyses a real artwork and produces the creative constraint. Testflight build due May 13.',
+    mt:{
+      Fabio:['Implement camera capture screen: tap to capture, confirm capture, processing state (spinner while analysing)','If palette extractor: implement colour clustering. Use k-means or median cut on captured image pixels to extract 5 dominant colours. Return as CGColor array. Display as large swatches with the museum painting thumbnail','Handle camera permission gracefully: if denied, show a clear explanation and a "use a preset painting" fallback — the app must still work offline'],
+      Seyedeh:['If outline colorist: implement edge detection using Core Image CIEdgeWork filter. Convert to black-on-white line drawing. Allow flood-fill colouring by tap within regions','Implement the transition from camera result to drawing canvas: palette or outline loads automatically into the canvas session','Archive and submit the Testflight build by May 13. Share with team for internal testing. Collect and log all crash reports'],
+    },
+    del:['Camera flow end-to-end functional','Palette extraction or outline detection working','Testflight build submitted (May 13)'],
+  },
+  {
+    id:'sprint3', cell:'r-dev-w5', phase:'act', priority:'high',
+    title:'Sprint 3 — Personal Museum & Persistence',
+    week:'W5 — May 18–24',
+    members:['Fabio','Seyedeh'],
+    desc:'Build the emotional core: the personal museum where children\'s creations live and are revisited. This is the feature that creates the "is my painting still there?" moment.',
+    mt:{
+      Fabio:['Implement the gallery view: grid of saved artworks, each shown as thumbnail. Tapping opens full-screen viewer','For each saved creation, store alongside the drawing: the museum painting thumbnail, the date, and an optional title the child can set (max 20 chars, large keyboard)','Add a "new creation" entry point from the gallery: a prominent + button that starts the camera flow or offers a preset painting'],
+      Seyedeh:['Implement the full-screen artwork viewer: child\'s drawing side-by-side with the museum painting that inspired it','Add saving animation: the artwork visually "flies" from the canvas into the gallery — this is the emotionally satisfying moment, invest time in it','Implement basic onboarding: 2–3 splash screens, visuals only, minimal text. Skip button available from screen 1','Thorough regression test: run the complete end-to-end flow (camera → draw → save → gallery → revisit) on 3 different device sizes'],
+    },
+    del:['Personal museum gallery working','Full end-to-end flow on device','Onboarding screens','Saving animation'],
+  },
+  {
+    id:'bugfix', cell:'r-dev-w7', phase:'store', priority:'high',
+    title:'Bug Fix & Resubmission Buffer',
+    week:'W7 — Jun 1–7',
+    members:['Fabio','Seyedeh'],
+    desc:'Dedicated week for fixing App Store rejection issues and final user testing bugs. No new features. Only stability, performance, and accessibility fixes.',
+    mt:{
+      Fabio:['Triage any App Store rejection feedback and fix within 48 hours of receiving it — do not wait','Performance pass: test on the oldest supported device (iPhone XR). Drawing canvas and camera flow must be smooth with no dropped frames','Final memory check: run Xcode Instruments memory profiler. Fix any leaks in the drawing canvas — common with UIKit canvas implementations'],
+      Seyedeh:['Accessibility pass: all tap targets minimum 44×44pt. All interactive elements have VoiceOver accessibility labels','Fix all bugs logged during W6 user testing session — priority order: crash > broken flow > visual glitch','Resubmit to App Store immediately after fixing rejection reasons. Add a reply message to Apple Review explaining each change — this speeds up re-review'],
+    },
+    del:['Resubmission if needed','Clean Instruments memory report','App Store approval confirmed before Jun 4'],
+  },
+
+  // ── USER TESTING ──
+  {
+    id:'lofi-test', cell:'r-ut-w2', phase:'investigate', priority:'high',
+    title:'LoFi User Testing',
+    week:'W2–W3 — Apr 27–May 7',
+    members:['Francesco','Matteo','FabrizioE'],
+    desc:'Test the paper and Figma prototype with real children and parents. Failure here is cheap — failure after the build is expensive. The goal is to break the flow before it is coded.',
+    mt:{
+      Francesco:['Recruit 4–5 children aged 5–7 through personal networks or the museum education department. Have at least one parent present per session','Facilitate each session: place the prototype in front of the child, say "show me how you would use this app", then stay silent and observe','Note every moment of confusion: hesitation, unintended taps, things skipped — these are the redesign targets'],
+      Matteo:['Interview parents after each session: "Did this look educational? Would you download it?" Rate 1–5 on each question','Compile all findings into a prioritised issue list: must-fix (blocks the flow) vs nice-to-have (improves experience)','Share findings with design team same day — designers iterate before HiFi begins'],
+      FabrizioE:['Run the Figma prototype sessions on a physical iPhone (mirrored via Figma app)','Take written notes of every interaction — do not rely on memory','Select the better feature variant based on test results and communicate the decision to the full team'],
+    },
+    del:['5 session observation reports','Prioritised issue list','Feature variant decision locked'],
+  },
+  {
+    id:'hifi-test', cell:'r-ut-w4', phase:'act', priority:'high',
+    title:'HiFi User Testing — Mid Term Prep',
+    week:'W4 — May 11–15',
+    members:['Francesco','Matteo','FabrizioE'],
+    desc:'Test the working Testflight build with real families before the Mid Term Review with Apple on May 15. Results feed directly into the pitch narrative.',
+    mt:{
+      Francesco:['Test with 3–4 families using the Testflight build on a real iPhone — always device, never screen-mirrored laptop','Time spontaneous engagement: more than 5 minutes without prompting = strong signal. Record the duration for each session','Collect one clear quote from a child and one from a parent that captures the emotional response — these go in the pitch'],
+      Matteo:['Ask each parent to rate on 1–5: "Would you download this?" and "Does your child seem to be learning something?"','Produce a one-slide testing summary for the Mid Term presentation: methodology, participants, key numbers, standout quote'],
+      FabrizioE:['Screen-record sessions (with consent) — select 1–2 clips showing genuine child engagement. These are the most persuasive evidence in any pitch'],
+    },
+    del:['Testing summary slide for Mid Term','3–5 user quotes','Engagement time data','Video clips (with consent)'],
+  },
+  {
+    id:'final-ut', cell:'r-ut-w6', phase:'act', priority:'medium',
+    title:'Final User Testing',
+    week:'W6–W7 — May 22–Jun 7',
+    members:['Francesco','Matteo','FabrizioE'],
+    desc:'Last two rounds of testing on the polished build. Validates the finished product and provides evidence for the Challenge Presentation narrative.',
+    mt:{
+      Francesco:['Test with 4–5 families using the most current Testflight or App Store build','Run a task completion test: three tasks (scan a painting, draw something, find your saved drawings) — measure success rate per task'],
+      Matteo:['Collect NPS-style data from parents: "How likely are you to recommend this app?" Score 1–10. Aim for 8+','Write the final user testing report: methodology, participants, key findings, satisfaction scores — this becomes the evidence section of the pitch'],
+      FabrizioE:['Note any crashes or broken flows and report to dev team immediately with device + iOS version','Select final video clips for Challenge Presentation — prefer genuine spontaneous reactions over scripted moments'],
+    },
+    del:['Final user testing report','Task completion rate data','NPS scores','Final video clips'],
+  },
+
+  // ── APP STORE ──
+  {
+    id:'store-req', cell:'r-as-w5', phase:'store', priority:'low',
+    title:'App Store Requirements',
+    week:'W5 — May 18–22',
+    members:['Matteo','Seyedeh','FabrizioL'],
+    desc:'Prepare all non-visual App Store submission requirements. Missing any of these causes immediate rejection. Must be complete before submission week.',
+    mt:{
+      Matteo:['Own App Store Connect setup: app name, bundle ID, primary language (Italian + English), categories (Education → Kids 5 and Under)','Complete the age rating questionnaire — all 23 questions. Wrong answers = rejection. Answer accurately','Coordinate submission timeline: confirm design assets and build arrive from respective owners before May 22'],
+      Seyedeh:['Verify technical compliance: no third-party analytics SDKs, no advertising frameworks, no social sign-in — all banned in Kids category','Add the App Privacy manifest (PrivacyInfo.xcprivacy) to the Xcode project — required for all 2024+ submissions','Run the app through App Store Connect automated validation. Fix all warnings — they become rejections'],
+      FabrizioL:['Write the App Store description: open with the emotional hook, explain the core feature, close with the pedagogical benefit for parents. 4000 chars max','Write the keyword list (100 chars max): research high-traffic terms using AppFollow or similar. Include: "museum kids", "art education", "drawing app", "bambini arte"','Create the support URL and privacy policy page — host on GitHub Pages. Both are required fields. Privacy policy must state no data is collected'],
+    },
+    del:['App Store Connect metadata complete','Privacy policy live at a public URL','Privacy manifest in Xcode project','App description + keyword list'],
+  },
+  {
+    id:'store-check', cell:'r-as-w5', phase:'store', priority:'low',
+    title:'App Store Final Check',
+    week:'W5 — May 18–22',
+    members:['Seyedeh','Fabio','Matteo'],
+    desc:'The structured pre-submission checklist run on the release build. Last gate before entering Apple Review. Be thorough — a failed submission costs 24–72 hours of buffer.',
+    mt:{
+      Seyedeh:['Pre-submission checklist: correct bundle ID, version 1.0.0, build number incremented, no placeholder assets, no print() debug logs in release build','Verify entitlements: Camera Usage Description string present and accurate in Info.plist. No unnecessary permissions requested','Archive release build in Xcode Organiser and validate against App Store requirements — fix all validation errors'],
+      Fabio:['Final full-flow functional test: camera → palette → draw → save → gallery → revisit — on iPhone SE (small) and iPhone 15 Pro Max (large)','Test edge cases: camera permission denied, storage full, exit mid-draw, very long session (30+ min) — app must not crash in any scenario','Upload the validated archive to App Store Connect and confirm it appears ready for submission'],
+      Matteo:['Cross-check all metadata against the actual build: screenshots match real UI, description matches real features — no phantom features','Confirm May 25 as the locked submission date. Communicate to full team. Name the on-call person for the review period (May 25–28)'],
+    },
+    del:['Signed pre-submission checklist','Release build uploaded to App Store Connect','On-call plan for review period documented'],
+  },
+  {
+    id:'store-submit', cell:'r-as-w6', phase:'store', priority:'high',
+    title:'First App Store Submission',
+    week:'W6 — May 25',
+    members:['Fabio','Seyedeh','FabrizioL'],
+    desc:'The moment the app enters Apple\'s review queue. This is a hard date — submitting later than May 25 compresses the buffer for rejections before the Jun 4 final deliverable.',
+    mt:{
+      Fabio:['Archive the release build. Upload to App Store Connect via Xcode Organiser','Complete all App Store Connect metadata: name, subtitle (30 chars), description, keywords, support URL, privacy policy URL','Submit for review. Enable App Store Connect email notifications immediately'],
+      Seyedeh:['Document the submission timestamp and expected review window (1–3 days typical, up to 7 days first submission)','Monitor App Store Connect daily for status changes — review the rejection reason within 1 hour of receiving it if rejected'],
+      FabrizioL:['Confirm the privacy policy page is live and accessible at the URL entered in App Store Connect','Prepare the resubmission message template: a short explanation of what was changed, ready to paste if rejection occurs'],
+    },
+    del:['Submitted build in App Store Connect','Review tracking log started','Resubmission template ready'],
+  },
+
+  // ── BUSINESS & PITCH ──
+  {
+    id:'value-prop', cell:'r-biz-w1', phase:'investigate', priority:'medium',
+    title:'Value Proposition & Market Research',
+    week:'W1–W2 — Apr 20–May 3',
+    members:['FabrizioL','Francesco','Matteo'],
+    desc:'Establish the business and market context. Who are the competitors? What do parents pay for? How is this app differentiated? These answers shape the App Store positioning and the Apple pitch.',
+    mt:{
+      FabrizioL:['Build the Value Proposition Canvas: two customers (kid and parent), pains, gains, how the app addresses each — use the format from the project brief','Define the business model: free v1 → premium tier (additional museum collections, more brush styles) → institutional licensing to schools and museums','Identify 3 potential Italian museum partners for a letter of intent — even informal interest dramatically strengthens the final pitch','Research grant opportunities: Ministero della Cultura digital programs, EU digital culture funds, Apple Foundation grants'],
+      Francesco:['Research competitor apps from a user perspective: download and spend 20 minutes with each one. What frustrates you? What works?','Document the emotional differentiator: the "personal museum" loop (create → save → revisit → want to return) exists in no competitor. Validate this claim'],
+      Matteo:['Estimate the TAM: families with children aged 4–8 who visit Italian museums per year. Source: Ministero della Cultura annual visitor data','Find 2–3 comparable exits or investments in kids education apps globally — useful for the "why now" market slide'],
+    },
+    del:['Value Proposition Canvas','Competitor analysis doc','Market size estimate with source','Business model overview'],
+  },
+  {
+    id:'biz-model', cell:'r-biz-w3', phase:'act', priority:'medium',
+    title:'App Business Model',
+    week:'W3–W5 — May 1–22',
+    members:['FabrizioL','Matteo','Francesco'],
+    desc:'Develop the business framing for Mid Term (May 15) and Final (Jun 12) presentations. Must answer: who pays, how much, why now, what\'s next.',
+    mt:{
+      FabrizioL:['Own the business model canvas: value proposition, customer segments, revenue streams, key partners, cost structure','Build the market slide: Italian museum visitor data → families with children → addressable users. Keep the numbers honest and sourced','Write the one-page business case leave-behind for judges: problem, solution, market, model, team — one A4 page, no more'],
+      Matteo:['Coordinate the pitch narrative structure: hook → problem → insight → solution → demo → market → roadmap → team. Assign sections to speakers','Ensure business slides are ready for Mid Term dry run by May 13 — no exceptions'],
+      Francesco:['Collect all user testing data that supports the business case: engagement time per session, parent willingness-to-pay rating, NPS score','Find 2 real quotes from parents that can be used as social proof in the pitch — names optional, authenticity essential'],
+    },
+    del:['Business model canvas','Market + monetisation slides','One-page business case PDF'],
+  },
+  {
+    id:'midterm-pres', cell:'r-biz-w4', phase:'milestone', priority:'high',
+    title:'Mid Term Review — Apple',
+    week:'W4 — May 15',
+    members:['Francesco','Matteo','FabrizioL','FabrizioE'],
+    desc:'The official mid-term review with Apple on May 15. High-stakes checkpoint. Apple reviewers evaluate concept, prototype, and team clarity. Preparation is everything.',
+    mt:{
+      Francesco:['Own Q&A during the review: listen carefully before answering. "We considered that — here is our current thinking" is always acceptable','Take verbatim notes during Apple\'s feedback — every point is an action item','Write up the post-review action list within 2 hours of the session and share with the team'],
+      Matteo:['Coordinate who speaks each section: PM opens, designer walks through prototype, dev explains the tech, business manager closes','Run full rehearsals on May 13 (team only) and May 14 (with a mentor if possible)','Bring a physical device with the working build. Always have a screen recording as a backup'],
+      FabrizioL:['Prepare and present the market and business slides','Have the one-page business case printed and ready to hand to Apple reviewers'],
+      FabrizioE:['Walk reviewers through the prototype on a physical iPhone — narrate what the child experiences at each step','Prepare 2 printed screenshots as visual leave-behinds if allowed'],
+    },
+    del:['Presentation delivered','Post-review action list (within 2h)','Feedback prioritised and assigned'],
+  },
+  {
+    id:'final-pitch', cell:'r-biz-w7', phase:'act', priority:'high',
+    title:'Final Pitch Preparation',
+    week:'W7 — Jun 1–7',
+    members:['FabrizioL','Francesco','Matteo'],
+    desc:'Develop the final Challenge Presentation incorporating Mid Term feedback and the completed product. This is the definitive version.',
+    mt:{
+      FabrizioL:['Update the market and business slides based on any Mid Term feedback received from Apple','Prepare the "what\'s next" narrative: museum partnerships pipeline, school integration, multilingual expansion — even as student project, articulate the real path','Write acknowledgements slide for mentors and Musi-co'],
+      Francesco:['Update the Q&A cheat sheet with any new questions surfaced at Mid Term','Confirm final speaking assignments — same as Mid Term unless something changed'],
+      Matteo:['Integrate all updated content into the final Keynote file','Coordinate the 3 rehearsal sessions: Jun 8 (team), Jun 9 (mentor review), Jun 10 (peer final)','Prepare the live demo script: which screens, in what order, what the presenter says at each step'],
+    },
+    del:['Final pitch deck complete','Updated Q&A cheat sheet','Live demo script'],
+  },
+  {
+    id:'rehearsals', cell:'r-biz-w8', phase:'polish', priority:'high',
+    title:'Presentation Rehearsals ×3',
+    week:'W8 — Jun 8–10',
+    members:['Francesco','Matteo','FabrizioL','FabrizioE'],
+    desc:'Three structured rehearsals — each with a specific focus so they are not repetitive. Preparation is the only variable the team fully controls at this point.',
+    mt:{
+      Francesco:['Rehearsal 1 (Jun 8) — full run-through, team only. Time each section. Identify where pacing drags','Rehearsal 3 (Jun 10) — Q&A focus. Bombard speakers with the hardest questions. Practice holding composure'],
+      Matteo:['Rehearsal 2 (Jun 9) — present to mentors. Incorporate their feedback the same day','After each rehearsal: update speaker notes in Keynote, adjust timing, fix any slide that caused confusion','Agree on the backup plan if the live demo fails: screen recording ready to play, cued to the right moment'],
+      FabrizioL:['Own the business section delivery across all 3 rehearsals — iterate the phrasing until it feels natural, not read'],
+      FabrizioE:['Own the design + prototype section delivery — walk through the demo as if the reviewer has never seen a smartphone'],
+    },
+    del:['3 rehearsals completed','Mentor feedback incorporated','Backup screen recording cued and ready'],
+  },
+
+  // ── MILESTONES ──
+  {
+    id:'m-poc', cell:'r-mil-w3', phase:'milestone', priority:'high',
+    title:'⬥ Proof of Concept',
+    week:'W3 — May 4',
+    members:['Fabio','Seyedeh','FabrizioE','Francesco','Matteo'],
+    desc:'Required challenge artifact: a validated solution concept backed by research and an early prototype.',
+    mt:{
+      Fabio:['Ensure the SwiftUI drawing canvas spike is running on device and demonstrable'],
+      Seyedeh:['Prepare a 1-min device demo for the PoC submission'],
+      FabrizioE:['Ensure the Figma LoFi prototype is clean and shareable via link'],
+      Francesco:['Write the "Validated Solution Concept" one-pager: problem, user insight, chosen solution, evidence from field research'],
+      Matteo:['Package and submit all PoC artifacts before the deadline. Confirm submission receipt'],
+    },
+    del:['Validated Solution Concept one-pager','LoFi Figma prototype link','SwiftUI spike on device'],
+  },
+  {
+    id:'m-midterm-del', cell:'r-mil-w4', phase:'milestone', priority:'high',
+    title:'⬥ Mid Term Deliverable — May 12',
+    week:'W4 — May 12',
+    members:['Fabio','Seyedeh','FabrizioE','Agostino','Francesco','Matteo'],
+    desc:'Tangible mid-term deliverable submitted May 12. HiFi prototype and Testflight build must both exist.',
+    mt:{
+      Fabio:['Confirm Testflight build is live and all team members can install it'],
+      Seyedeh:['Run end-to-end smoke test on the Testflight build — document any known issues'],
+      FabrizioE:['Confirm HiFi Figma prototype link is shareable and all screens are complete'],
+      Agostino:['Confirm all design assets are exported and in the shared folder'],
+      Francesco:['Compile the mid-term deliverable package: Figma link, Testflight link, Research Synthesis doc'],
+      Matteo:['Submit the package before the deadline. Confirm receipt'],
+    },
+    del:['Mid Term deliverable package submitted','Testflight build live','HiFi prototype link shared'],
+  },
+  {
+    id:'m-final-del', cell:'r-mil-w7', phase:'milestone', priority:'high',
+    title:'⬥ Final Deliverable — Jun 4',
+    week:'W7 — Jun 4',
+    members:['Fabio','Seyedeh','FabrizioE','Agostino','Enzo','Francesco','Matteo','FabrizioL'],
+    desc:'The official final deliverable for the challenge. App must be on App Store or submitted and pending approval.',
+    mt:{
+      Fabio:['Confirm App Store approval status. If pending, document submission date and tracking number'],
+      Seyedeh:['Archive a final release build for submission regardless of App Store status'],
+      FabrizioE:['Confirm Keynote and Poster files are final and in the shared folder'],
+      Agostino:['Confirm poster is print-ready PDF'],
+      Enzo:['Confirm App Store screenshots are final'],
+      Francesco:['Compile the final deliverable package: App Store link (or build), Keynote, Poster, documentation'],
+      Matteo:['Submit before Jun 4 deadline. Confirm receipt'],
+      FabrizioL:['Confirm privacy policy and support URL are live'],
+    },
+    del:['Final deliverable package submitted','App Store link or archived build','All collateral in shared folder'],
+  },
+  {
+    id:'m-challenge-pres', cell:'r-mil-w9', phase:'milestone', priority:'high',
+    title:'⬥ Challenge Presentation — Jun 12',
+    week:'W9 — Jun 12',
+    members:['Francesco','Matteo','FabrizioL','FabrizioE','Agostino','Enzo','Fabio','Seyedeh'],
+    desc:'The official Challenge Presentation to Apple and academy judges.',
+    mt:{
+      Francesco:['Arrive early. Test live demo connection before the session. Have screen recording cued as backup','Own Q&A — listen before answering, never over-claim'],
+      Matteo:['Manage timing during the presentation — signal to speakers when to move on','Take notes on all judge feedback immediately after'],
+      FabrizioL:['Deliver business section. Have printed one-pagers for judges'],
+      FabrizioE:['Deliver design + prototype section on a physical iPhone'],
+      Agostino:['Support the demo — stand by to pass device or assist'],
+      Enzo:['Bring the printed poster to the venue'],
+      Fabio:['Ensure device is charged, app is on latest build, demo flow is rehearsed'],
+      Seyedeh:['Have the backup screen recording ready on a second device'],
+    },
+    del:['Presentation delivered','Judge feedback documented'],
+  },
+  {
+    id:'m-eval', cell:'r-mil-w10', phase:'milestone', priority:'high',
+    title:'⬥ Final Evaluation — Jun 15',
+    week:'W10 — Jun 15',
+    members:['Francesco','Matteo','FabrizioL','FabrizioE','Agostino','Enzo','Fabio','Seyedeh'],
+    desc:'The closing evaluation event. Individual assessments, jury review, or public showcase depending on format.',
+    mt:{
+      Francesco:['Confirm evaluation format with academy staff 48 hours in advance','Each person prepares a 2-minute personal reflection: their contribution, what they learned'],
+      Matteo:['Bring printed one-pagers for jury members','Schedule team retrospective for the week after'],
+      FabrizioL:['Present business case if asked by jury'],
+      FabrizioE:['Have the app running on multiple devices in case of technical issues'],
+      Agostino:['Bring the printed poster'],
+      Enzo:['Support any live demo if requested'],
+      Fabio:['Have the app on 2 devices — primary and backup'],
+      Seyedeh:['Have backup screen recording ready'],
+    },
+    del:['Evaluation completed','Team retrospective scheduled'],
+  },
+];
+
+// CELL PLACEMENT MAP
+// Maps task id → which cell id to inject into
+const PLACEMENT = {
+  'roadmap-ws':    'r-pm-w1',
+  'tracking':      'r-pm-w1',
+  'competitor-research': 'r-res-w1',
+  'outdoor-interviews':  'r-res-w2',
+  'research-synthesis':  'r-res-w3',
+  'mid-research':        'r-res-w4',
+  'design-brief':   'r-des-w1',
+  'lofi-prototype': 'r-des-w2',
+  'design-app':     'r-des-w3',
+  'design-handoff': 'r-des-w4',
+  'app-icon':       'r-des-w5',
+  'app-poster':     'r-des-w7',
+  'keynote':        'r-des-w7',
+  'tech-setup':     'r-dev-w1',
+  'sprint1':        'r-dev-w3',
+  'sprint2':        'r-dev-w4',
+  'sprint3':        'r-dev-w5',
+  'bugfix':         'r-dev-w7',
+  'lofi-test':      'r-ut-w2',
+  'hifi-test':      'r-ut-w4',
+  'final-ut':       'r-ut-w6',
+  'store-req':      'r-as-w5',
+  'store-check':    'r-as-w5',
+  'store-submit':   'r-as-w6',
+  'value-prop':     'r-biz-w1',
+  'biz-model':      'r-biz-w3',
+  'midterm-pres':   'r-biz-w4',
+  'final-pitch':    'r-biz-w7',
+  'rehearsals':     'r-biz-w8',
+  'm-poc':          'r-mil-w3',
+  'm-midterm-del':  'r-mil-w4',
+  'm-final-del':    'r-mil-w7',
+  'm-challenge-pres':'r-mil-w9',
+  'm-eval':         'r-mil-w10',
+};
+
+let currentFilter = 'all';
+
+function makeAv(m, size) {
+  const s = size || 16;
+  return `<span style="display:inline-flex;align-items:center;justify-content:center;width:${s}px;height:${s}px;border-radius:50%;background:${TC[m]};font-size:${Math.round(s*0.45)}px;font-weight:700;color:#fff;flex-shrink:0;">${TI[m]}</span>`;
+}
+
+function buildCard(task) {
+  const memberMatch = currentFilter === 'all' || task.members.includes(currentFilter);
+  const div = document.createElement('div');
+  div.className = `tc ${task.phase} ${task.priority}${memberMatch ? '' : ' dimmed'}`;
+  div.dataset.id = task.id;
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'tt';
+  titleEl.textContent = task.title.replace('⬥ ','');
+  div.appendChild(titleEl);
+
+  const ow = document.createElement('div');
+  ow.className = 'tow';
+  const shown = currentFilter !== 'all'
+    ? task.members.filter(m => m === currentFilter)
+    : task.members;
+  shown.forEach(m => {
+    const sp = document.createElement('span');
+    sp.className = 'ot';
+    sp.style.cssText = `color:${TC[m]};border-color:${TC[m]};background:${TC[m]}18;`;
+    sp.innerHTML = makeAv(m, 12) + ' ' + (currentFilter !== 'all' ? TL[m].split(' ')[0] : TI[m]);
+    ow.appendChild(sp);
+  });
+  div.appendChild(ow);
+  div.addEventListener('click', () => openModal(task.id));
+  return div;
+}
+
+function renderAll() {
+  // Clear all cells
+  document.querySelectorAll('.cell').forEach(c => c.innerHTML = '');
+  TASKS.forEach(task => {
+    const cellId = PLACEMENT[task.id];
+    if (!cellId) return;
+    const cell = document.getElementById(cellId);
+    if (!cell) return;
+    cell.appendChild(buildCard(task));
+  });
+}
+
+function openModal(id) {
+  const task = TASKS.find(t => t.id === id);
+  if (!task) return;
+  document.getElementById('mph').textContent = task.phase.toUpperCase();
+  document.getElementById('mph').className = `mph ${task.phase}`;
+  document.getElementById('mtt').textContent = task.title;
+  document.getElementById('mdesc').textContent = task.desc;
+
+  const mmeta = document.getElementById('mmeta');
+  mmeta.innerHTML = `<span class="mwk">${task.week}</span><span class="pbadge ${task.priority}">${task.priority.charAt(0).toUpperCase()+task.priority.slice(1)} priority</span>`;
+
+  const mow = document.getElementById('mow');
+  mow.innerHTML = '';
+  task.members.forEach(m => {
+    const sp = document.createElement('span');
+    sp.className = 'mot';
+    sp.style.cssText = `color:${TC[m]};border-color:${TC[m]};background:${TC[m]}18;`;
+    sp.innerHTML = makeAv(m,16) + ' ' + TL[m];
+    mow.appendChild(sp);
+  });
+
+  const mmbr = document.getElementById('mmbr');
+  mmbr.innerHTML = '';
+  task.members.forEach(m => {
+    const tasks_m = (task.mt && task.mt[m]) || [];
+    const blk = document.createElement('div');
+    blk.className = 'mblk';
+    blk.innerHTML = `<div class="mbh">${makeAv(m,20)}<span class="mbn">${TL[m]}</span><span class="mbr">${TR[m]}</span></div>`;
+    const bt = document.createElement('div');
+    bt.className = 'mbt';
+    if (tasks_m.length === 0) {
+      const item = document.createElement('div');
+      item.className = 'mbi';
+      item.innerHTML = `<span>—</span><span>See team overview above</span>`;
+      bt.appendChild(item);
+    } else {
+      tasks_m.forEach((t, i) => {
+        const item = document.createElement('div');
+        item.className = 'mbi';
+        item.innerHTML = `<span>${String(i+1).padStart(2,'0')}</span><span>${t}</span>`;
+        bt.appendChild(item);
+      });
+    }
+    blk.appendChild(bt);
+    mmbr.appendChild(blk);
+  });
+
+  const mdel = document.getElementById('mdel');
+  mdel.innerHTML = '';
+  task.del.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'del';
+    row.innerHTML = `<span class="da">→</span><span>${d}</span>`;
+    mdel.appendChild(row);
+  });
+
+  document.getElementById('mo').classList.add('open');
+}
+
+function closeMo(e) { if (e.target === document.getElementById('mo')) document.getElementById('mo').classList.remove('open'); }
+function closeMoBtn() { document.getElementById('mo').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.getElementById('mo').classList.remove('open'); });
+
+function filt(m, el) {
+  currentFilter = m;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderAll();
+}
+
+renderAll();
+</script>
+</body>
+</html>
